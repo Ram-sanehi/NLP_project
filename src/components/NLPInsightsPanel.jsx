@@ -60,7 +60,9 @@ export default function NLPInsightsPanel({ nlpStats, messages, ollamaModel, onAn
       Surprise: '😮',
       Sadness: '😢',
       Disgust: '🤢',
-      Neutral: '😐'
+      Neutral: '😐',
+      Trust: '🤝',
+      Anticipation: '👀'
     };
     return emojis[emotion] || '😐';
   };
@@ -92,10 +94,10 @@ export default function NLPInsightsPanel({ nlpStats, messages, ollamaModel, onAn
   } = nlpStats || {};
 
   const allEntities = [
-    ...entities?.people.map(e => ({ ...e, type: 'Person' })) || [],
-    ...entities?.places.map(e => ({ ...e, type: 'Place' })) || [],
-    ...entities?.organizations.map(e => ({ ...e, type: 'Organization' })) || [],
-    ...entities?.topics.map(e => ({ ...e, type: 'Topic' })) || []
+    ...entities?.people.map(e => ({ value: e, type: 'Person' })) || [],
+    ...entities?.places.map(e => ({ value: e, type: 'Place' })) || [],
+    ...entities?.organizations.map(e => ({ value: e, type: 'Organization' })) || [],
+    ...entities?.topics.map(e => ({ value: e, type: 'Topic' })) || []
   ];
 
   const handleSummarize = useCallback(async () => {
@@ -626,7 +628,7 @@ export default function NLPInsightsPanel({ nlpStats, messages, ollamaModel, onAn
             ) : allEntities.length > 0 ? (
               <div className="space-y-2">
                 {allEntities.map((entity, idx) => (
-                  <div key={`${entity.type}-${entity}-${idx}`} className="flex items-center gap-2 text-sm">
+                  <div key={`${entity.type}-${entity.value}-${idx}`} className="flex items-center gap-2 text-sm">
                     <span className={`text-xs px-1.5 py-0.5 rounded ${
                       entity.type === 'Person' ? 'bg-amber-900/50 text-amber-400' :
                       entity.type === 'Place' ? 'bg-blue-900/50 text-blue-400' :
@@ -635,7 +637,7 @@ export default function NLPInsightsPanel({ nlpStats, messages, ollamaModel, onAn
                     }`}>
                       {entity.type}
                     </span>
-                    <span className="text-gray-300">{entity}</span>
+                    <span className="text-gray-300">{entity.value}</span>
                   </div>
                 ))}
               </div>

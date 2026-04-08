@@ -64,7 +64,9 @@ export default function ChatWindow({ messages, isLoading, ollamaError, onAnalyze
       Surprise: '😮',
       Sadness: '😢',
       Disgust: '🤢',
-      Neutral: '😐'
+      Neutral: '😐',
+      Trust: '🤝',
+      Anticipation: '👀'
     };
     return emojis[emotion] || '😐';
   };

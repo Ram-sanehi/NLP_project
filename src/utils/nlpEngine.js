@@ -125,10 +125,26 @@ export function analyzeSentiment(text) {
 /**
  * Named Entity Recognition using compromise
  * Extracts people, places, organizations, and topic nouns from text
+ * Includes blacklist filtering for harmful/profane content
  *
  * @param {string} text - User message text
  * @returns {{ people: string[], places: string[], organizations: string[], topics: string[] }}
  */
+
+// Blacklist for harmful/unwanted entities
+const ENTITY_BLACKLIST = new Set([
+  'kill', 'murder', 'attack', 'violence', 'violent', 'death', 'dead',
+  'hate', 'hurt', 'pain', 'destroy', 'bomb', 'weapon', 'gun', 'knife',
+  'drugs', 'drug', 'alcohol', 'abuse', 'rape', 'assault', 'crime',
+  'hell', 'damn', 'shit', 'fuck', 'ass', 'crap'
+]);
+
+const isBlacklisted = (word) => {
+  const lower = word.toLowerCase();
+  return ENTITY_BLACKLIST.has(lower) || 
+         /^(kill|murder|attack|violence|death|hate|hurt|bomb|weapon|drug|abuse|rape|assault|crime)s?$/i.test(lower);
+};
+
 export function extractEntities(text) {
   // Parse text with compromise NLP engine
   const doc = nlp(text);
@@ -139,22 +155,22 @@ export function extractEntities(text) {
   // Extract people names using compromise's #Person matcher
   const people = doc.match('#Person').out('array')
     .map(cleanEntity)
-    .filter(name => name.length > 1);
+    .filter(name => name.length > 1 && !isBlacklisted(name));
 
   // Extract places using compromise's #Place matcher
   const places = doc.match('#Place').out('array')
     .map(cleanEntity)
-    .filter(place => place.length > 1);
+    .filter(place => place.length > 1 && !isBlacklisted(place));
 
   // Extract organizations using compromise's #Organization matcher
   const organizations = doc.match('#Organization').out('array')
     .map(cleanEntity)
-    .filter(org => org.length > 1);
+    .filter(org => org.length > 1 && !isBlacklisted(org));
 
   // Also try to extract proper nouns as potential entities (fallback)
   const properNouns = doc.match('#ProperNoun').out('array')
     .map(cleanEntity)
-    .filter(n => n.length > 2);
+    .filter(n => n.length > 2 && !isBlacklisted(n));
 
   // Extract topics as meaningful nouns (excluding common pronouns and very short words)
   const topics = doc.match('#Noun').out('array')
@@ -162,7 +178,8 @@ export function extractEntities(text) {
     .filter(topic => {
       const lower = topic.toLowerCase();
       return topic.length > 2 &&
-             !['i', 'you', 'we', 'they', 'it', 'thing', 'things', 'time', 'way', 'day', 'year', 'people', 'man', 'woman'].includes(lower);
+             !['i', 'you', 'we', 'they', 'it', 'thing', 'things', 'time', 'way', 'day', 'year', 'people', 'man', 'woman'].includes(lower) &&
+             !isBlacklisted(topic);
     })
     .slice(0, 15);
 
@@ -177,10 +194,27 @@ export function extractEntities(text) {
 /**
  * Keyword Extraction using compromise
  * Extracts top noun phrases and important terms from text
+ * Includes blacklist filtering for harmful/profane content
  *
  * @param {string} text - User message text
  * @returns {string[]} Array of top 5 keyword phrases
  */
+
+// Blacklist for harmful/unwanted keywords
+const KEYWORD_BLACKLIST = new Set([
+  'kill', 'murder', 'attack', 'violence', 'violent', 'death', 'dead',
+  'hate', 'hurt', 'pain', 'destroy', 'bomb', 'weapon', 'gun', 'knife',
+  'drugs', 'drug', 'alcohol', 'abuse', 'rape', 'assault', 'crime',
+  'hell', 'damn', 'shit', 'fuck', 'ass', 'crap', 'bitch', 'whore',
+  'slut', 'bastard', 'stupid', 'retard', 'moron', 'idiot'
+]);
+
+const isKeywordBlacklisted = (word) => {
+  const lower = word.toLowerCase().trim();
+  return KEYWORD_BLACKLIST.has(lower) ||
+         /^(kill|murder|attack|violence|death|hate|hurt|bomb|weapon|drug|abuse|rape|assault|crime|hell|damn|shit|fuck|bitch|whore|slut|bastard|stupid|retard)s?$/i.test(lower);
+};
+
 export function extractKeywords(text) {
   // Parse text with compromise
   const doc = nlp(text);
@@ -196,7 +230,8 @@ export function extractKeywords(text) {
       const words = phrase.split(/\s+/);
       return phrase.length > 3 &&
              words.length <= 4 &&
-             !['the', 'a', 'an', 'this', 'that', 'some', 'any', 'all', 'it', 'is', 'are', 'was', 'were'].includes(phrase);
+             !['the', 'a', 'an', 'this', 'that', 'some', 'any', 'all', 'it', 'is', 'are', 'was', 'were'].includes(phrase) &&
+             !isKeywordBlacklisted(phrase);
     });
 
   // Extract important nouns (proper nouns and significant common nouns)
@@ -207,20 +242,23 @@ export function extractKeywords(text) {
       const words = n.split(/\s+/);
       return n.length > 3 &&
              words.length <= 2 &&
-             !['time', 'way', 'day', 'year', 'people', 'man', 'woman', 'thing', 'things', 'stuff', 'lot', 'kind', 'sort'].includes(n);
+             !['time', 'way', 'day', 'year', 'people', 'man', 'woman', 'thing', 'things', 'stuff', 'lot', 'kind', 'sort'].includes(n) &&
+             !isKeywordBlacklisted(n);
     });
 
   // Extract meaningful verbs (actions)
   const verbs = doc.match('#Verb')
     .out('array')
     .map(cleanKeyword)
-    .filter(v => v.length > 3 && !['is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can'].includes(v));
+    .filter(v => v.length > 3 && !['is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can'].includes(v) &&
+             !isKeywordBlacklisted(v));
 
   // Extract adjectives for additional context
   const adjectives = doc.match('#Adjective')
     .out('array')
     .map(cleanKeyword)
-    .filter(adj => adj.length > 3 && !['good', 'bad', 'new', 'old', 'first', 'last', 'long', 'little', 'great', 'own'].includes(adj));
+    .filter(adj => adj.length > 3 && !['good', 'bad', 'new', 'old', 'first', 'last', 'long', 'little', 'great', 'own'].includes(adj) &&
+             !isKeywordBlacklisted(adj));
 
   // Combine all keywords, prioritizing noun phrases, then nouns, then verbs
   const allKeywords = [...new Set([...nounPhrases, ...importantNouns, ...verbs, ...adjectives])];

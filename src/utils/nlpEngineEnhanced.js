@@ -16,20 +16,27 @@ export { detectIntent, analyzeSentiment, extractEntities, extractKeywords, analy
 // 1. EMOTION DETECTION (Simplified)
 // ============================================================================
 
+// ============================================================================
+// 1. EMOTION DETECTION (Enhanced with 9 emotions and sentiment integration)
+// ============================================================================
+
 const EMOTION_KEYWORDS = {
-  'Joy': ['happy', 'joy', 'excited', 'great', 'wonderful', 'amazing', 'fantastic', 'excellent', 'brilliant', 'delighted', 'pleased', 'thrilled', 'love', 'thankful', 'grateful', 'yay', 'awesome', 'fun', 'enjoy', 'celebrate'],
-  'Anger': ['angry', 'mad', 'furious', 'outraged', 'irate', 'annoyed', 'frustrated', 'infuriated', 'hate', 'loathe', 'despise', 'resent', 'hostile', 'rage'],
-  'Fear': ['scared', 'afraid', 'fear', 'frightened', 'terrified', 'horrified', 'panicked', 'alarmed', 'worried', 'anxious', 'nervous', 'apprehensive', 'terror', 'panic'],
-  'Surprise': ['surprised', 'shocked', 'astonished', 'amazed', 'astounded', 'stunned', 'wow', 'omg', 'unbelievable', 'incredible', 'unexpected', 'whoa'],
-  'Sadness': ['sad', 'unhappy', 'depressed', 'miserable', 'gloomy', 'down', 'blue', 'heartbroken', 'devastated', 'crushed', 'disappointed', 'upset', 'tear', 'cry', 'grief', 'sorrow', 'lonely', 'hopeless'],
-  'Disgust': ['disgusted', 'gross', 'revolted', 'repulsed', 'nauseated', 'sick', 'vomit', 'eww', 'yuck', 'disgusting', 'repulsive', 'offensive'],
-  'Neutral': ['okay', 'fine', 'alright', 'whatever', 'meh', 'normal', 'average', 'typical', 'usual']
+  'Joy': ['happy', 'joy', 'excited', 'great', 'wonderful', 'amazing', 'fantastic', 'excellent', 'brilliant', 'delighted', 'pleased', 'thrilled', 'love', 'thankful', 'grateful', 'yay', 'awesome', 'fun', 'enjoy', 'celebrate', 'best', 'super', 'perfect', 'wonderful', 'brilliant'],
+  'Anger': ['angry', 'mad', 'furious', 'outraged', 'irate', 'annoyed', 'frustrated', 'infuriated', 'hate', 'loathe', 'despise', 'resent', 'hostile', 'rage', 'aggressive', 'bitter', 'upset', 'indignant'],
+  'Fear': ['scared', 'afraid', 'fear', 'frightened', 'terrified', 'horrified', 'panicked', 'alarmed', 'worried', 'anxious', 'nervous', 'apprehensive', 'terror', 'panic', 'concerned', 'dread', 'suspicious', 'doubtful'],
+  'Surprise': ['surprised', 'shocked', 'astonished', 'amazed', 'astounded', 'stunned', 'wow', 'omg', 'unbelievable', 'incredible', 'unexpected', 'whoa', 'astound', 'aghast', 'bewildered', 'startled'],
+  'Sadness': ['sad', 'unhappy', 'depressed', 'miserable', 'gloomy', 'down', 'blue', 'heartbroken', 'devastated', 'crushed', 'disappointed', 'upset', 'tear', 'cry', 'grief', 'sorrow', 'lonely', 'hopeless', 'despair', 'dismal'],
+  'Disgust': ['disgusted', 'gross', 'revolted', 'repulsed', 'nauseated', 'sick', 'vomit', 'eww', 'yuck', 'disgusting', 'repulsive', 'offensive', 'abhorrent', 'loathsome', 'vile'],
+  'Neutral': ['okay', 'fine', 'alright', 'whatever', 'meh', 'normal', 'average', 'typical', 'usual', 'just', 'nothing', 'meh', 'standard'],
+  'Trust': ['trust', 'believe', 'confident', 'faith', 'reliable', 'dependable', 'assured', 'secure', 'certain', 'honest', 'loyal', 'sincere', 'friendly', 'helpful', 'good'],
+  'Anticipation': ['anticipate', 'expect', 'look forward', 'excited', 'eager', 'interested', 'curious', 'intrigued', 'awaiting', 'hopeful', 'upcoming', 'prepared', 'ready']
 };
 
-export function detectEmotion(text) {
+export function detectEmotion(text, sentimentData = null) {
   const lowerText = text.toLowerCase();
   const scores = {};
 
+  // Keyword-based emotion detection
   for (const [emotion, keywords] of Object.entries(EMOTION_KEYWORDS)) {
     let score = 0;
     for (const keyword of keywords) {
@@ -40,6 +47,34 @@ export function detectEmotion(text) {
     if (score > 0) {
       scores[emotion] = score;
     }
+  }
+
+  // Sentiment-based mapping for better emotion detection
+  if (sentimentData && sentimentData.score !== undefined) {
+    const sentimentScore = sentimentData.score;
+    
+    if (sentimentScore > 3) {
+      scores['Joy'] = (scores['Joy'] || 0) + 3;
+      scores['Trust'] = (scores['Trust'] || 0) + 2;
+    } else if (sentimentScore > 1) {
+      scores['Joy'] = (scores['Joy'] || 0) + 1;
+    } else if (sentimentScore < -3) {
+      scores['Anger'] = (scores['Anger'] || 0) + 2;
+      scores['Disgust'] = (scores['Disgust'] || 0) + 2;
+    } else if (sentimentScore < -1) {
+      scores['Sadness'] = (scores['Sadness'] || 0) + 1;
+    }
+  }
+
+  // Punctuation-based emotion boosting
+  if (lowerText.includes('?')) {
+    scores['Anticipation'] = (scores['Anticipation'] || 0) + 1;
+  }
+  if (lowerText.match(/!{2,}/)) {
+    scores['Surprise'] = (scores['Surprise'] || 0) + 2;
+    scores['Joy'] = (scores['Joy'] || 0) + 1;
+  } else if (lowerText.includes('!')) {
+    scores['Surprise'] = (scores['Surprise'] || 0) + 1;
   }
 
   const entries = Object.entries(scores);
@@ -54,7 +89,7 @@ export function detectEmotion(text) {
 
   const emojis = {
     'Joy': '😊', 'Anger': '😠', 'Fear': '😨', 'Surprise': '😮',
-    'Sadness': '😢', 'Disgust': '🤢', 'Neutral': '😐'
+    'Sadness': '😢', 'Disgust': '🤢', 'Neutral': '😐', 'Trust': '🤝', 'Anticipation': '👀'
   };
 
   return {
@@ -342,7 +377,7 @@ export function analyzeMessageEnhanced(text, options = {}) {
   const entities = extractEntities(text);
   const keywords = extractKeywords(text);
   const topic = classifyTopic(text);
-  const emotion = detectEmotion(text);
+  const emotion = detectEmotion(text, sentiment);
   const toxicity = detectToxicity(text);
   const readability = calculateReadability(text);
   const complexity = measureTextComplexity(text);

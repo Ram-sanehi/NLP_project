@@ -59,7 +59,9 @@ export default function MessageBubble({ message, isLast }) {
       Surprise: '😮',
       Sadness: '😢',
       Disgust: '🤢',
-      Neutral: '😐'
+      Neutral: '😐',
+      Trust: '🤝',
+      Anticipation: '👀'
     };
     return emojis[emotion] || '😐';
   };
