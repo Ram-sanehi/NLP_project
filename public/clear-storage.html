@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Storage</title>
+  <style>
+    body {
+      background: #0d1117;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    button {
+      background: #1f6feb;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 1rem;
+    }
+    button:hover {
+      background: #388bfd;
+    }
+    a {
+      color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Clear Chat Storage</h1>
+    <p>This will clear all saved data from the chatbot.</p>
+    <button onclick="clearAndGo()">Clear Storage & Go to App</button>
+    <br>
+    <a href="/">Back to App</a>
+  </div>
+  <script>
+    function clearAndGo() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
+    }
+    // Auto-clear after 2 seconds
+    setTimeout(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      document.querySelector('p').textContent = 'Storage cleared! Redirecting...';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    }, 2000);
+  </script>
+</body>
+</html>

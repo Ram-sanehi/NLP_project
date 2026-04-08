@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure full viewport height */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Base styles */
+body {
+  @apply bg-chat-bg text-gray-100 antialiased;
+}
+
+/* Markdown prose overrides for dark theme */
+.prose {
+  --tw-prose-body: #e5e7eb;
+  --tw-prose-headings: #f3f4f6;
+  --tw-prose-links: #60a5fa;
+  --tw-prose-code: #e5e7eb;
+  --tw-prose-pre-bg: #1e1e1e;
+  --tw-prose-pre-code: #e5e7eb;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply text-white font-semibold;
+}
+
+.prose p {
+  @apply text-gray-300 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply text-gray-300;
+}
+
+.prose li {
+  @apply my-1;
+}
+
+.prose strong {
+  @apply text-white font-semibold;
+}
+
+.prose a {
+  @apply text-blue-400 hover:text-blue-300 underline transition-colors;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-gray-600 pl-4 text-gray-400 italic;
+}
+
+/* Remove default textarea resize */
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d #0d1117;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-blue-600/50 text-white;
+}
+
+/* Focus visible outline for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-chat-bg;
+}
+
+/* Button active states */
+button:active:not(:disabled) {
+  @apply transform scale-[0.98];
+}
+
+/* Animation for sidebar transitions */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.sidebar-enter {
+  animation: slideIn 0.3s ease-out;
+}
